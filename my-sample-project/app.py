@@ -16,17 +16,20 @@ def sql_server_connection():
     return conn
 
 
-def execute_query(query):
-    conn = sql_server_connection()
-    cur = conn.cursor()
-    cur.execute(query)
-    conn.commit()
-
-
 @app.route('/')
 def index():
-    query = "INSERT INTO [User] VALUES({0})".format(" 'Mike' ")
-    execute_query(query)
+    conn = sql_server_connection()
+    cur = conn.cursor()
+    #    query = "INSERT INTO [User] VALUES({0})".format(" 'Mike' ")
+    query = "SELECT * FROM [User]"
+    cur.execute(query)
+    results = cur.fetchall()
+
+    if len(results) > 0:
+        # Convert list of pyodb rows to list
+        user_list = [row[0] for row in results]
+        return user_list[0]
+
     return render_template('index.html')
 
 
