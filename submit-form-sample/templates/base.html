@@ -2,7 +2,21 @@
 {% block title %}
     Submit Form
 {% endblock %}
+
+{% block navbar %}
+    {% include '_navbar.html' %} <!--Get code from the "_navbar.hmlt" file -->
+{% endblock %}
+
 {% block content %}
-    {% block body %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+           <ul >
+               {% for category, message in messages %}
+                   <li class="alert alert-{{ category }}">{{ message }}</li>
+                {% endfor %}
+           </ul>
+        {% endif %}
+    {% endwith %}
+    {% block sub_content %}
     {% endblock %}
 {% endblock %}

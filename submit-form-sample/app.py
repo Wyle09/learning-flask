@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, flash
 from flask_bootstrap import Bootstrap
+from werkzeug.security import generate_password_hash, check_password_hash
 import pyodbc
 import yaml
+import os
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.urandom(24)
 bootstrap = Bootstrap(app)
 
 
@@ -22,13 +25,21 @@ def index():
     cur = conn.cursor()
 
     if request.method == 'POST':
-        form = request.form
-        name = form['name']
-        age = form['age']
-        insert_query = "INSERT INTO employee(name, age) VALUES('{0}', {1})" \
-            .format(name, age)
-        cur.execute(insert_query)
-        conn.commit()
+        try:
+            form = request.form
+            name = form['name']
+            age = form['age']
+            password = form['password']
+            # encrypt the password before storing the data in the db
+            password = generate_password_hash(password)
+            insert_query = "INSERT INTO employee(name, age, pwd) VALUES" \
+                "('{0}',{1},'{2}')".format(name, age, password)
+            cur.execute(insert_query)
+            flash('Successfully inserted data', 'success')
+            conn.commit()
+        except Exception as e:  # ImportError:
+            flash("Failed to insert data", 'danger')
+            flash(e, 'danger')
 
     return render_template('index.html')
 
@@ -42,6 +53,10 @@ def employee():
     employees_data = cur.fetchall()
 
     if len(employees_data) > 0:
+        # can optain the user information without accessing the db again.
+        session['username'] = employees_data[0].name
+        # check that passwords match.
+        # return str(check_password_hash(employees_data[0].pwd, 'Password_1'))
         return render_template('employees.html', employees=employees_data)
 
 
