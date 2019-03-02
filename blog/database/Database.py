@@ -7,7 +7,7 @@ class Database:
         self.query = query
 
     def sql_server_connection(self):
-        db_config = yaml.load(open('config/db.yaml'))
+        db_config = yaml.load(open('database/db.yaml'))
         conn = pyodbc.connect(driver=db_config['driver'],
                               host=db_config['server'],
                               database=db_config['db'],
