@@ -17,7 +17,13 @@ class Database:
 
     def execute_query(self):
         conn = self.sql_server_connection()
-        cur = conn.cursor()
-        cur.execute(self.query)
-        conn.commit()
+
+        try:
+            cur = conn.cursor()
+            cur.execute(self.query)
+            return conn, cur
+        except Exception as e:
+            conn.close()
+            return e
+
         return conn, cur

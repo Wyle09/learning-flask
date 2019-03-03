@@ -1,9 +1,15 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, session, request, redirect, flash
 from flask_bootstrap import Bootstrap
+from database import query
+from database.Database import Database
+from werkzeug.security import generate_password_hash, check_password_hash
+import os
 
 
 app = Flask(__name__)
 Bootstrap(app)
+
+app.config['SECRET_KEY'] = os.urandom(24)
 
 
 @app.route('/')
@@ -23,11 +29,63 @@ def blogs(id):
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    if request.method == "POST":
+        # Get values from the user registration form.
+        user_registration = request.form
+        first_name = user_registration['first_name']
+        last_name = user_registration['last_name']
+        username = user_registration['username']
+        email = user_registration['email']
+        password = user_registration['password']
+        confirm_password = user_registration['confirm_password']
+
+        if password != confirm_password:
+            flash("Password does not match! Try again", 'danger')
+            return render_template('register.html')
+
+        register_query = query.register(first_name, last_name, username, email,
+                                        generate_password_hash(password))
+        db = Database(register_query)
+        execute = db.execute_query()
+        flash("Registration successful! Please login", 'success')
+        conn = execute[0]  # Get connection object.
+        conn.commit()
+        conn.close()
+        return redirect('/login')
+
     return render_template('register.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == "POST":
+        user_login = request.form
+        username = user_login['username']
+        password = user_login['password']
+        login_query = query.login(username)
+        db = Database(login_query)
+        execute = db.execute_query()
+        conn, cur = execute  # get connection & cursor objects.
+        user = cur.fetchone()
+
+        if user:  # Check if user exist.
+            # compare password between db and login form.
+            if check_password_hash(user.Password, password):
+                session['_login'] = True
+                session['_firstName'] = user.First_Name
+                session['_lastName'] = user.Last_Name
+                success_message = "Welcome {0} ! You have been successfully" \
+                    " logged in".format(username)
+                flash(success_message, 'success')
+            else:
+                conn.close()
+                flash("Password does not match", 'danger')
+                return render_template('login.html')
+        else:
+            conn.close()
+            flash("User not found", 'danger')
+            return render_template('login.html')
+
     return render_template('login.html')
 
 
@@ -59,7 +117,7 @@ def logout():
 
 def main():
     if __name__ == '__main__':
-        app.run()
+        app.run(debug=True)
 
 
 main()
