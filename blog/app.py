@@ -32,19 +32,17 @@ def register():
     if request.method == "POST":
         # Get values from the user registration form.
         user_registration = request.form
-        first_name = user_registration['first_name']
-        last_name = user_registration['last_name']
-        username = user_registration['username']
-        email = user_registration['email']
-        password = user_registration['password']
-        confirm_password = user_registration['confirm_password']
 
-        if password != confirm_password:
+        if user_registration['password'] != user_registration['confirm_password']:
             flash("Password does not match! Try again", 'danger')
             return render_template('register.html')
 
-        register_query = query.register(first_name, last_name, username, email,
-                                        generate_password_hash(password))
+        register_query = query.register(user_registration['first_name'],
+                                        user_registration['last_name'],
+                                        user_registration['username'],
+                                        user_registration['email'],
+                                        generate_password_hash(
+                                                user_registration['password']))
         db = Database(register_query)
         execute = db.execute_query()
         flash("Registration successful! Please login", 'success')
@@ -60,22 +58,20 @@ def register():
 def login():
     if request.method == "POST":
         user_login = request.form
-        username = user_login['username']
-        password = user_login['password']
-        login_query = query.login(username)
+        login_query = query.login(user_login['username'])
         db = Database(login_query)
         execute = db.execute_query()
         conn, cur = execute  # get connection & cursor objects.
-        user = cur.fetchone()
+        user = cur.fetchone()  # User in DB.
 
         if user:  # Check if user exist.
             # compare password between db and login form.
-            if check_password_hash(user.Password, password):
+            if check_password_hash(user.Password, user_login['password']):
                 session['_login'] = True
                 session['_firstName'] = user.First_Name
                 session['_lastName'] = user.Last_Name
                 success_message = "Welcome {0} ! You have been successfully" \
-                    " logged in".format(username)
+                    " logged in".format(user_login['username'])
                 flash(success_message, 'success')
             else:
                 conn.close()
