@@ -21,7 +21,6 @@ class Database:
         try:
             cur = conn.cursor()
             cur.execute(self.query)
-            return conn, cur
         except Exception as e:
             conn.close()
             return e
