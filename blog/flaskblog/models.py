@@ -1,17 +1,17 @@
-""" main application """
-import os
 from datetime import datetime
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from flaskblog import db, login_manager
+from flask_login import UserMixin
 
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = os.urandom(24)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-db = SQLAlchemy(app)
+@login_manager.user_loader
+def load_user(user_id):
+    """ Refer to documentation:
+     https://flask-login.readthedocs.io/en/latest/ """
+    return User.query.get(int(user_id))
 
 
-class User(db.Model):
+class User(db.Model, UserMixin): 
+    # UserMixin additional library to etend the user model
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -34,11 +34,3 @@ class Post(db.Model):
 
     def __repr__(self):
         return f"User('{self.title}', '{self.date_posted}')"
-
-
-def main():
-    if __name__ == '__main__':
-        app.run(debug=True)
-
-
-main()

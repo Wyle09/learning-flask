@@ -1,5 +1,11 @@
 {
     "python.pythonPath": "C:\\my-projects\\python\\learning-flask\\env\\python.exe",
     "python.linting.enabled": true,
-    "python.linting.pylintArgs": ["--load-plugins", "flake8"]
+    "python.linting.pylintArgs": [
+        "--load-plugins",
+        "flake8"
+    ],
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true
+
 }
