@@ -1,52 +1,40 @@
+""" Module contains posts related routes """
+from flask import render_template, url_for, flash, redirect, request, abort
+from flaskblog.posts.forms import PostForm
 from flask import Blueprint
-
-blog_post = Blueprint('blog_post', __name__)
-
-
-@blog_post.route('/blogs/<int:id>')
-def blogs(id):
-    blogs_query = query.select_blog_id(id)
-    db = Database(blogs_query)
-    execute = db.execute_query()
-    conn, cur = execute
-    blog = cur.fetchone()
-
-    if blog:
-        conn.close()
-        return render_template('blogs.html', blog=blog)
-
-    return "Blog not found"
+from flaskblog import db
+from flaskblog.models import Post
+from flask_login import current_user, login_required
 
 
-@blog_post.route('/write-blog', methods=['GET', 'POST'])
-def write_blog():
-    if request.method == 'POST':
-        blog_post = request.form
-        author = "{0} {1}".format(session['firstName'], session['lastName'])
-        write_query = query.write_blog_query(blog_post['title'],
-                                             author,
-                                             blog_post['body'])
-        db = Database(write_query)
-        execute = db.execute_query()
-        conn, cur = execute
-        conn.commit()
-        conn.close()
-        flash("Successfully posted new blog", 'sucess')
-        return redirect('/')
-
-    return render_template('write-blog.html')
+post = Blueprint('posts', __name__)
 
 
-@blog_post.route('/my-blogs')
-def my_blogs():
-    return render_template('my-blogs.html')
+@post.route('/post/new', methods=['GET', 'POST'])
+@login_required
+def new_post():
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(title=form.title.data,
+                    content=form.content.data, author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash("Your post has been created!", 'success')
+        return redirect(url_for('main.home'))
+    return render_template('create-post.html', title='New Post', form=form)
 
 
-@blog_post.route('/edit-blog/<int:id>', methods=['GET', 'POST'])
-def edit_blog():
-    return render_template('edit-blog.html')
+@post.route('/post/<int:post_id>')
+def post(post_id):
+    post = Post.query.get_or_404(post_id)
+    return render_template('post.html', title=post.title, post=post)
 
 
-@blog_post.route('/delete-blog/<int:id>', methods=['POST'])
-def delete_blog():
-    return 'Success'
+@post.route('/post/<int:post_id>/update')
+@login_required
+def update_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        abort(403)
+    form = PostForm()
+    return render_template('create-post.html', title='Update', form=form)

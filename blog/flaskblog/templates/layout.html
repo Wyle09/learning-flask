@@ -39,8 +39,9 @@
                     
                     <!-- Navbar Right Side -->
                     <div class="navbar-nav">
-                        <!-- User will need to be authenticated in order to access the Account & Logout page. -->
+                        <!-- User will need to be authenticated in order to access the forms that are in the if block -->
                         {% if current_user.is_authenticated %}
+                            <a class="nav-item nav-link" href="{{ url_for('new_post') }}">New Post</a>
                             <a class="nav-item nav-link" href="{{ url_for('account') }}">Account</a>
                             <a class="nav-item nav-link" href="{{ url_for('logout') }}">Logout</a>
                         {% else %}

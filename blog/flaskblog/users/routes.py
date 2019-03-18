@@ -3,8 +3,8 @@ from flask import render_template, url_for, flash, redirect, request
 from flaskblog.users.forms import (
     RegistrationForm, LoginForm, UpdateAccountForm)
 from flask import Blueprint
-from flaskblog import app, db, bcrypt
-from flaskblog.models import User, Post
+from flaskblog import db, bcrypt
+from flaskblog.models import User
 from flask_login import (login_user, current_user, logout_user, login_required)
 from flaskblog.users.utils import save_picture
 
