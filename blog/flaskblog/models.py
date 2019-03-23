@@ -6,8 +6,10 @@ from flask_login import UserMixin
 
 @login_manager.user_loader
 def load_user(user_id):
-    """ Refer to documentation:
-     https://flask-login.readthedocs.io/en/latest/ """
+    """
+        Refer to documentation:
+        https://flask-login.readthedocs.io/en/latest/ 
+     """
     return User.query.get(int(user_id))
 
 
@@ -22,11 +24,16 @@ class User(db.Model, UserMixin):
     posts = db.relationship('Post', backref='author', lazy=True)
 
     def get_reset_token(self, expires_sec=1800):
+        """
+            Generates a random key that will expire  within 1,800 seconds
+            (30 minuites.)
+        """
         s = Serializer(app.config['SECRET_KEY'], expires_sec)
         return s.dump({'user_id': self.id}).decode('utf-8')
 
     @staticmethod
     def verify_reset_token(token):
+        """ Returns the user id if token is valid. """
         s = Serializer(app.config['SECRET_KEY'])
         try:
             user_id = s.loads(token)['user_id']
