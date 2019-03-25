@@ -1,19 +1,18 @@
 """ Module contains user related routes """
-from flask import render_template, url_for, flash, redirect, request
+from flask import render_template, url_for, flash, redirect, request, Blueprint
 from flaskblog.users.forms import (RegistrationForm, LoginForm,
                                    UpdateAccountForm, RequestResetForm,
                                    ResetPasswordForm)
-from flask import Blueprint
 from flaskblog import db, bcrypt
 from flaskblog.models import User, Post
 from flask_login import (login_user, current_user, logout_user, login_required)
 from flaskblog.users.utils import save_picture, send_reset_email
 
 
-user = Blueprint('user', __name__)
+users = Blueprint('users', __name__)
 
 
-@user.route('/register', methods=['GET', 'POST'])
+@users.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
@@ -30,10 +29,10 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 
-@user.route('/login', methods=['GET', 'POST'])
+@users.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return render_template(url_for('main.home'))
+        return redirect(url_for('main.home'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
@@ -48,20 +47,20 @@ def login():
             if next_page:
                 return redirect(next_page)
             else:
-                redirect(url_for('main.home'))
+                return redirect(url_for('main.home'))
         else:
             flash("Login unsucessful. Please check username and password",
                   'danger')
     return render_template('login.html', title='Login', form=form)
 
 
-@user.route('/logout')
+@users.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('main.home'))
 
 
-@user.route('/account', methods=['GET', 'POST'])
+@users.route('/account', methods=['GET', 'POST'])
 @login_required  # User needs to log in before accessing this route.
 def account():
     form = UpdateAccountForm()
@@ -83,7 +82,7 @@ def account():
                            image_file=image_file, form=form)
 
 
-@user.route('/user/<string:username>')
+@users.route('/user/<string:username>')
 def user_posts(username):
     page = request.args.get('page', 1, type=int)
     user = User.query.filter_by(username=username).first_or_404()
@@ -93,7 +92,7 @@ def user_posts(username):
     return render_template('user_posts.html', posts=posts, user=user)
 
 
-@user.route('/reset_password', methods=['GET', 'POST'])
+@users.route('/reset_password', methods=['GET', 'POST'])
 def reset_request():
     if current_user.is_authenticated:
         return render_template(url_for('main.home'))
@@ -107,7 +106,7 @@ def reset_request():
                            form=form)
 
 
-@user.route('/reset_password/<token>', methods=['GET', 'POST'])
+@users.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_token(token):  # Will ge token by the url that was sent to the user.
     if current_user.is_authenticated:
         return render_template(url_for('main.home'))

@@ -1,5 +1,4 @@
-from flask import render_template, request
-from flask import Blueprint
+from flask import render_template, request, Blueprint
 from flaskblog.models import Post
 
 
