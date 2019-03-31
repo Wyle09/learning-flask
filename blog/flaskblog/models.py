@@ -30,7 +30,7 @@ class User(db.Model, UserMixin):
             (30 minuites.)
         """
         s = Serializer(current_app.config['SECRET_KEY'], expires_sec)
-        return s.dump({'user_id': self.id}).decode('utf-8')
+        return s.dumps({'user_id': self.id}).decode('utf-8')
 
     @staticmethod
     def verify_reset_token(token):
