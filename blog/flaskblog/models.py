@@ -15,7 +15,7 @@ def load_user(user_id):
 
 
 class User(db.Model, UserMixin):
-    # UserMixin additional library to etend the user model
+    # UserMixin additional library to extend the user model
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
